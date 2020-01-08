@@ -21,7 +21,7 @@ class WebPage:
     @property 
     def soup(self): 
         if self._soup is None: 
-            self._soup = BS(self.resp.text) 
+            self._soup = BS(self.resp.text, "html.parser")
         return self._soup
 
 
