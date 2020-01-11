@@ -1,23 +1,15 @@
 # wafiq's comment
-
-from bs4 import BeautifulSoup as BS
-import requests
-from tqdm import tqdm
-from zipfile import ZipFile
-import os.path
-from urllib.parse import urlparse
+import re
 from urllib import parse
+from zipfile import ZipFile
+
+import requests
+from bs4 import BeautifulSoup as BS
+from tqdm import tqdm
 
 websitename = "https://www.mangareader.net/"
 chapter_url = "https://www.mangareader.net/goblin-is-very-strong/18"
 
-output = urlparse(chapter_url).path
-
-for splitoutput in output:
-    splitpath = os.path.split(output) 
-    serieswithslash = splitpath[0].split("/") 
-    series = serieswithslash[1] 
-    chapter_number = splitpath[1] 
 
 class WebPage:
     def __init__(self, url):
@@ -56,23 +48,39 @@ class Chapter(WebPage):
             parse.urljoin(websitename, page.attrs["value"]) for page in pages
         ]
 
-    def generate_page(self, url):
-        return Page(url)
-
-    def download(self, ): 
+    def download(self,):
         pages = self.pages()
-        with ZipFile(f"{series}  {chapter_number} .cbz", "w") as zf:     
-             for num, p in tqdm(enumerate(pages, 1), total=len(pages), desc=f"text"): 
-                 with zf.open(f"{series}  {chapter_number} {num:02}.jpg", "w") as f: 
-                     resp = requests.get(p.image) 
-                     f.write(resp.content) 
+        with ZipFile(f"{self.series}_{self.number}.cbz", "w") as zf:
+            for num, p in tqdm(
+                enumerate(pages, 1),
+                total=len(pages),
+                desc=f"{self.series}-{self.number}",
+            ):
+                with zf.open(f"{num:02}.jpg", "w") as f:
+                    resp = requests.get(p.image)
+                    f.write(resp.content)
+
+    @property
+    def info(self):
+        return re.search(r".*/(?P<series>[^/]*)/(?P<num>\d*)", self.url)
+
+    @property
+    def number(self):
+        return self.info["num"]
 
     @property
     def page_list(self):
         if self._page_list is None:
             self._page_list = self.enumerate_pages()
         return self._page_list
-    
+
+    @property
+    def series(self):
+        return self.info["series"]
+
+    def generate_page(self, url):
+        return Page(url)
+
     def pages(self):
         return [self.generate_page(p) for p in self.page_list]
 
