@@ -1,5 +1,7 @@
 # wafiq's comment
+import os
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib import parse
 from zipfile import ZipFile
 
@@ -7,8 +9,14 @@ import requests
 from bs4 import BeautifulSoup as BS
 from tqdm import tqdm
 
+
 websitename = "https://www.mangareader.net/"
-chapter_url = "https://www.mangareader.net/goblin-is-very-strong/18"
+# series_url = input("Enter full URL of desired series: ")
+
+
+def write_to_zip(image, num, zf):
+    with zf.open(f"{num:03}.jpg", "w") as zfile:
+        zfile.write(image)
 
 
 class WebPage:
@@ -31,9 +39,12 @@ class WebPage:
 
 
 class Series(WebPage):
-    def __init__(self, url):
+    base_url = "https://www.mangareader.net/{}"
+
+    def __init__(self, name):
         self._chapter_list = None
-        super().__init__(url)
+        self.name = name.replace("-", " ")
+        super().__init__(self.base_url.format(name))
 
     def enumerate_chapters(self):
         chapters = self.soup.select("div#chapterlist a")
@@ -42,9 +53,22 @@ class Series(WebPage):
             for chapter in chapters
         ]
 
-    def generate_chapter(self, url):
-        return Chapter(url)
+    def download(self, latest):
+        chapters = self.chapters()
+        chapters = chapters[-latest:] if latest is not None else chapters
+        self.create_folder()
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            results = [pool.submit(chap.download) for chap in chapters]
+            for result in tqdm(
+                as_completed(results),
+                total=len(results),
+                desc="Chapter progress",
+            ):
+                pass
 
+    def create_folder(self): 
+        if not os.path.exists(self.name): 
+            os.mkdir(self.name)   
     # def build_directory(self):
     #    return os.mkdir(nameofmanga)
 
@@ -53,6 +77,12 @@ class Series(WebPage):
         if self._chapter_list is None:
             self._chapter_list = self.enumerate_chapters()
         return self._chapter_list
+
+    def generate_chapter(self, url):
+        return Chapter(url)
+
+    def chapters(self):
+        return [self.generate_chapter(ch) for ch in self.chapter_list]
 
 
 class Chapter(WebPage):
@@ -66,17 +96,22 @@ class Chapter(WebPage):
             parse.urljoin(websitename, page.attrs["value"]) for page in pages
         ]
 
-    def download(self,):
-        pages = self.pages()
-        with ZipFile(f"{self.series} Ch.{self.number}.cbz", "w") as zf:
-            for num, p in tqdm(
-                enumerate(pages, 1),
-                total=len(pages),
-                desc=f"{self.series} Ch.{self.number}",
-            ):
-                with zf.open(f"{num:03}.jpg", "w") as f:
-                    resp = requests.get(p.image)
-                    f.write(resp.content)
+    def download(self) -> None:
+        zf_name = f"{self.series}/Ch.{self.number}.cbz"
+        with ZipFile(zf_name, "w") as zf:
+            with ThreadPoolExecutor(max_workers=8) as pool:
+                results = [
+                    pool.submit(page.download, num)
+                    for num, page in enumerate(self.pages())
+                ]
+                for result in tqdm(
+                    as_completed(results),
+                    total=len(results),
+                    leave=False,
+                    desc=zf_name,
+                ):
+                    image, num = result.result()
+                    write_to_zip(image, num, zf)
 
     @property
     def info(self):
@@ -84,17 +119,19 @@ class Chapter(WebPage):
 
     @property
     def number(self):
-        return self.info["num"]
+        num = int(self.info["num"])
+        return f"{num:03}"
+
+    @property
+    def series(self):
+        # return self.info["series"]
+        return self.info["series"].replace("-", " ")
 
     @property
     def page_list(self):
         if self._page_list is None:
             self._page_list = self.enumerate_pages()
         return self._page_list
-
-    @property
-    def series(self):
-        return self.info["series"].replace("-", " ")
 
     def generate_page(self, url):
         return Page(url)
@@ -104,6 +141,17 @@ class Chapter(WebPage):
 
 
 class Page(WebPage):
+    def download(self, num: int) -> (bytes, int):
+        """A download image function 
+        Args: 
+            num (int): The page number for the future write, due to threads 
+             
+        Returns: 
+            (bytes, int): The bytes for the image, from Response.content 
+        """
+        resp = requests.get(self.image)
+        return resp.content, num
+
     @property
     def image(self):
         img = self.soup.find("img", id="img")
