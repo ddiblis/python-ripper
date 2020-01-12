@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 import click
-from working import Chapter, Series
+from . import Chapter, Series
 
 
-@click.group()
+@click.grwoup()
 def cli():
     pass
 

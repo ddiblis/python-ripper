@@ -11,8 +11,7 @@ black = "*"
 requests = "*"
 tqdm = "*"
 click = "*"
-urlparse = "*"
-parse = "*"
+bs4 = "*"
 
 [requires]
 python_version = "3.7"
