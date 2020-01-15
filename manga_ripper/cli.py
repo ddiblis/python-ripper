@@ -3,7 +3,7 @@ import click
 from . import Chapter, Series
 
 
-@click.grwoup()
+@click.group()
 def cli():
     pass
 
