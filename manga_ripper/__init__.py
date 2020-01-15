@@ -57,7 +57,7 @@ class Series(WebPage):
         chapters = self.chapters()
         chapters = chapters[-latest:] if latest is not None else chapters
         self.create_folder()
-        with ThreadPoolExecutor(max_workers=4) as pool:
+        with ThreadPoolExecutor(max_workers=6) as pool:
             results = [pool.submit(chap.download) for chap in chapters]
             for result in tqdm(
                 as_completed(results),
@@ -67,7 +67,7 @@ class Series(WebPage):
                 pass
 
     def create_folder(self): 
-        if not os.path.exists(self.name): 
+        if not os.path.exists(self.name):
             os.mkdir(self.name)   
     # def build_directory(self):
     #    return os.mkdir(nameofmanga)

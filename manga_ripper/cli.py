@@ -32,7 +32,7 @@ def chapter_echo(chapter):
     default=None,
 )
 @click.argument("name")
-def series(name, last):
+def mangareader(name, last):
     s = Series(name)
     s.download(last)
 
