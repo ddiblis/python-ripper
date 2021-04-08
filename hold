@@ -1,0 +1,63 @@
+import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from zipfile import ZipFile
+from tqdm import tqdm
+
+def write_to_zip(image, num, zf):
+    with zf.open(f"{num:03}.jpg", "w") as zfile:
+        zfile.write(image)
+def download_chapter(chapter: Chapter) -> None:
+    """A download chapter function
+    Args:
+        chapter (Chapter): A chapter object to operate on
+    """
+    zf_name = f"{chapter.series} Ch.{chapter.number}.cbz"
+    with ZipFile(zf_name, "w") as zf:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            results = [
+                pool.submit(page.download, num) 
+                for num, page in enumerate(chapter.pages())
+            ]
+            for result in tqdm(as_completed(results), total=len(results), leave=False, desc=zf_name):
+                image, num = result.result()
+                write_to_zip(image, num, zf)
+def download_series(series):
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        results = [pool.submit(download_chapter, chap) for chap in series.chapters()]
+        for result in tqdm(as_completed(results), total=len(results), desc="Chapter progress"):
+            pass
+from working import Page, Chapter, Series
+import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from zipfile import ZipFile
+from tqdm import tqdm
+
+def write_to_zip(image, num, zf):
+    with zf.open(f"{num:03}.jpg", "w") as zfile:
+        zfile.write(image)
+def download_chapter(chapter: Chapter) -> None:
+    """A download chapter function
+    Args:
+        chapter (Chapter): A chapter object to operate on
+    """
+    zf_name = f"{chapter.series} Ch.{chapter.number}.cbz"
+    with ZipFile(zf_name, "w") as zf:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            results = [
+                pool.submit(page.download, num) 
+                for num, page in enumerate(chapter.pages())
+            ]
+            for result in tqdm(as_completed(results), total=len(results), leave=False, desc=zf_name):
+                image, num = result.result()
+                write_to_zip(image, num, zf)
+def download_series(series):
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        results = [pool.submit(download_chapter, chap) for chap in series.chapters()]
+        for result in tqdm(as_completed(results), total=len(results), desc="Chapter progress"):
+            pass
+download_series(series)
+from working import Series
+series = Series("goblin-is-very-strong")
+series.chapter_list
+download_series(series)
+%history -f hold

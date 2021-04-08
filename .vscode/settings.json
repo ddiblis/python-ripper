@@ -1,0 +1,4 @@
+{
+    "python.pythonPath": "/home/thealiengunner/.local/share/virtualenvs/project-PdSGsdGI/bin/python",
+    "python.formatting.provider": "black"
+}

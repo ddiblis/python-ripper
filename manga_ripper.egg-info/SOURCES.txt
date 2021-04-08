@@ -1,0 +1,15 @@
+Pipfile
+setup.cfg
+setup.py
+manga_ripper/__init__.py
+manga_ripper/cli.py
+manga_ripper/mangakakalot.py
+manga_ripper/mangareader.py
+manga_ripper.egg-info/PKG-INFO
+manga_ripper.egg-info/SOURCES.txt
+manga_ripper.egg-info/dependency_links.txt
+manga_ripper.egg-info/entry_points.txt
+manga_ripper.egg-info/not-zip-safe
+manga_ripper.egg-info/pbr.json
+manga_ripper.egg-info/requires.txt
+manga_ripper.egg-info/top_level.txt

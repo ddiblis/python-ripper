@@ -1,0 +1,36 @@
+Classes:
+- Series
+- Chapter
+- Page
+
+
+Series:
+    args:
+        name
+    func:
+        build_directory
+        enumerate_chapters
+        generate_chapter
+    properity:
+        chapter_list
+
+build_directory: Creates dir from name of instance
+enumerate_chapters: Generage a list of url's for the chapters
+generate_chapter: Receives a URL and creates a chapter object
+
+Chapter:
+    args:
+        series_name
+        url
+    func:
+        download
+        enumerate_pages
+        generate_page
+    properity:
+        page_list
+
+Page:
+    args:
+        url
+    properity:
+        image

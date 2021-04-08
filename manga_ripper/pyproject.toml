@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "mangaripper"
+version = "0.1.0"
+description = "rips mangas from integrated websites"
+authors = ["wafiq <thealiengunner@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+requests = "^2.24.0"
+bs4 = "^0.0.1"
+click = "^7.1.2"
+tqdm = "^4.46.1"
+
+[tool.poetry.dev-dependencies]
+pylint = "^2.5.3"
+
+[tool.poetry.scripts]
+mangaripper = 'manga_ripper.cli:cli'
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

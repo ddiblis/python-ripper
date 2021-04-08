@@ -1,10 +1,27 @@
 import re
 from . import base
 import cfscrape
+import cookiejar
 
 class WebPage(base.WebPage):
-    pass
-    
+   def __init__(self,url):
+       self._scraped = None
+       self._jar = None
+       self._soup = None
+       self._url = url
+
+       @property
+       def scraped(self):
+           scraper = cfscraper.Cloudflarescraper()
+           if self._scraped is None:
+               self._scraped = scraper.get(url).content
+
+        @property
+        def soup(self):
+        if self._soup is None:
+            self._soup = BS(self._scraped.text, "html.parser")
+        return self._soup
+
 class Series(base.Series):
     base_url = "https://readcomiconline.to/Comic/{}"
     tags = ["readcomiconline", "rco"]

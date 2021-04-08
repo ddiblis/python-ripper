@@ -1,0 +1,3 @@
+[console_scripts]
+manga_ripper = manga_ripper.cli:cli
+
